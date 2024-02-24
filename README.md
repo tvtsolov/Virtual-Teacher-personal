@@ -1,4 +1,4 @@
-## .NET Project Virtual_Teacher
+## .NET Project Language Learning Platform
 ### Overview
 
 A platform for online learning where teachers can create video courses. Students can see all available courses, enroll in the ones they like and rate and comment under the course. Some lectures can have assignments, where each enrolled student can upload submission and receive a grade. 
