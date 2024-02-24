@@ -1,0 +1,152 @@
+﻿@{
+    ViewData["Title"] = "Update course";
+    var courseId = ViewContext.RouteData.Values["id"];
+}
+
+@model CourseUpdateViewModel
+
+@*DELETE COURSE MODAL*@
+<div class="modal fade" id="deleteCourseModal" tabindex="-1" aria-labelledby="deleteCourseModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteCourseModalLabel">Delete Course</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete course '@Model.Title'?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDelete">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@*DELETE NOTIFICATION*@
+<div id="notificationPopup" class="alert" role="alert" style="display: none; position: fixed; bottom: 20px; right: 20px; width: auto; max-width: 450px; z-index: 9999; box-shadow: 0 4px 8px rgba(0,0,0,0.1); padding-right: 15px; background: #a94442; color: white; border-radius: 4px;">
+    <span id="notificationMessage" style="display: inline-block; max-width: 80%;"></span>
+    <button id="closeNotification" style="display: inline-block; width: 20px; height: 20px; line-height: 20px; text-align: center; margin-left: 10px; border: none; background: none; color: white; float: right;">
+        <i class="fa-solid fa-xmark"></i>
+    </button>
+</div>
+
+
+<div class="form-container">
+    <form asp-controller="Course" asp-action="Update" method="post">
+
+        <div class="d-flex" style="padding-bottom: 15px;">
+            <div class="me-auto">
+                <h3 style="text-align:center;">Update Course</h3>
+            </div>
+
+            <div class="align-self-end">
+                <a asp-controller="Course" asp-action="Details" asp-route-id="@courseId">
+                    <h5>Back</h5>
+                </a>
+            </div>
+        </div>
+
+        <div class="form-floating mb-3">
+            <input asp-for="Title" type="text" class="form-control" id="floatingTitle" placeholder="@Model.Title">
+            <label asp-for="Title" for="floatingTitle">Title</label>
+            <span asp-validation-for="Title" class="text-danger"></span>
+        </div>
+
+        <div class="form-floating mb-3">
+            <textarea asp-for="Description" type="text" class="form-control" id="floatingDescription" rows="4" placeholder="@Model.Description"></textarea>
+            <label asp-for="Description" for="floatingDescription">Description</label>
+            <span asp-validation-for="Description" class="text-danger"></span>
+        </div>
+
+        <div class="form-floating mb-3">
+
+            <select asp-for="CourseTopic" class="form-control" id="courseTopic" name="courseTopic" id="floatingTopic">
+                @foreach (var topic in Enum.GetValues(typeof(CourseTopic)))
+                {
+                    <option value="@topic">@topic</option>
+                }
+            </select>
+            <label asp-for="CourseTopic" for="floatingTopic">Topic</label>
+
+        </div>
+
+        <div class="form-floating mb-3">
+            <input asp-for="VideoLink" type="text" class="form-control" id="floatingLink" placeholder="@Model.VideoLink">
+            <label asp-for="VideoLink" for="floatingLink">Video Link (not required)</label>
+            <span asp-validation-for="VideoLink" class="text-danger"></span>
+        </div>
+
+        <div class="form-floating mb-3" style="display: inline-block; width: 60%;">
+            <input asp-for="StartingDate" type="date" id="StartingDate" name="startingDate" class="form-control" style="width: 100%;">
+            <label asp-for="StartingDate">Start Date</label>
+        </div>
+
+        <div class="form-check form-check-reverse mb-3" style="display: inline-block; width: 30%; margin-right: 25px;">
+            <input asp-for="Published" type="checkbox" id="publishedCheckbox" name="Published" class="form-check-input" disabled="@Model.Published" />
+            <label for="publishedCheckbox" class="form-check-label">Publish</label>
+        </div>
+
+        <button type="submit" value="post" class="btn btn-primary" style="margin: 25px auto 0 auto; display: block; width: 100%">
+            <i class="fa-regular fa-pen-to-square"></i> Update Course
+        </button>
+
+    </form>
+
+    <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteCourseModal" style="margin: 15px auto 0 auto; display: block; width: 100%">
+        <i class="fa-regular fa-trash-can"></i> Delete Course
+    </button>
+
+</div>
+
+<script>
+    @*DELETE COURSE*@
+    document.getElementById('confirmDelete').addEventListener('click', function () {
+        fetch('/Course/Delete/@courseId', { method: 'GET' })
+            .then(response => response.json())
+            .then(({ success, errorMessage }) => {
+
+                let notificationPopup = document.getElementById('notificationPopup');
+                let notificationMessage = document.getElementById('notificationMessage');
+                notificationPopup.style.display = 'block';
+                notificationPopup.style.bottom = '20px';
+                notificationPopup.style.right = '20px';
+
+                if (success) {
+                    notificationPopup.classList.add('alert-success');
+                    notificationPopup.style.backgroundColor = '#3c763d';
+                    notificationMessage.innerHTML = 'Course deleted successfully.<br>Redirecting to home page in 5 seconds...';
+
+                    let countdown = 5;
+                    let intervalId = setInterval(() => {
+                        countdown--;
+
+                        if (countdown <= 0) {
+                            clearInterval(intervalId);
+                            window.location.href = '/Home/Index';
+                        } else {
+                            notificationMessage.innerHTML = 'Course deleted successfully.<br>Redirecting to home page in ' + countdown + ' seconds...';
+                        }
+                    }, 1000);
+                } else {
+                    notificationPopup.classList.add('alert-danger');
+                    notificationMessage.textContent = errorMessage;
+                }
+
+                let myModal = bootstrap.Modal.getInstance(document.getElementById('deleteCourseModal'));
+                myModal.hide();
+            });
+    });
+
+    @*DELETE NOTIFICATION*@
+    document.getElementById('closeNotification').addEventListener('click', function () {
+        let notificationPopup = document.getElementById('notificationPopup');
+        notificationPopup.style.display = 'none';
+    });
+
+    @*UPDATE COURSE FORM*@
+    document.getElementById("updateButton").addEventListener("click", function () {
+        document.getElementById("updateForm").submit();
+    });
+</script>

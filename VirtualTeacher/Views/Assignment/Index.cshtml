@@ -1,0 +1,315 @@
+﻿@{
+    ViewData["title"] = "Assignments";
+}
+
+@model AssignmentsViewModel
+
+    @* SEARCHBAR *@
+
+<div style="display: flex; justify-content: space-between; align-items: center;">
+    <span>
+        <form asp-controller="Assignment" asp-action="Index" method="Get">
+            <div class="input-group mb-3 mt-3 ps-2 pe-2">
+                <button class="btn btn-outline-secondary" type="submit" id="button-addon1">Go</button>
+                <input type="text" class="form-control " name="searchWord" placeholder="Search by course title" aria-label="search area">
+            </div>
+        </form>
+    </span>
+</div>
+
+<div class="d-flex justify-content-between">
+
+
+    @* LIST OF ASSIGNMENTS *@
+
+    <div style="width: 100%" class="">
+        @{
+            if (@Model.FilteredCourses != null){
+                foreach (var course in @Model.FilteredCourses)
+                {
+                    <div class="d-flex align-items-center justify-content-between">
+                        <H4 style="color: blue" class="ps-2  pb-2">@course.Title</H4>
+                        <div style="padding-inline-end: 40px; :">
+                            <i class="fa-regular fa-user  inline-block" title="Total number of students in this course"></i>
+                            <p class="inline-block">@course.EnrolledStudents.Where(student => student.IsDeleted != true).Count()</p>
+                        </div>
+                        
+                    </div>
+                    foreach(var lecture in course.Lectures)
+                    {
+                        <div class="pb-2">
+                        <div class="accordion " id="accordionPanelsStayOpenExample">
+                            <div class="accordion-item ">
+                                <h2 class="accordion-header position-relative" id="panelsStayOpen-headingOne">
+                                    <button class="accordion-button collapsed bg-info bg-gradient" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-@lecture.Id" aria-expanded="false" aria-controls="panelsStayOpen-collapseOne">
+                                        <div class="">@lecture.Title</div>
+                                        @{
+                                            int pendingSubmissions = lecture.Submissions
+                                                .Where(submission => submission.Grade == null 
+                                                && course.EnrolledStudents
+                                                .Any(student => student.Id == submission.StudentId))
+                                                .Count();
+                                            int gradedSubmissions = lecture.Submissions
+                                                .Where(submission => submission.Grade != null
+                                                && course.EnrolledStudents
+                                                .Any(student => student.Id == submission.StudentId))
+                                                .Count();
+                                            if (pendingSubmissions > 0)
+                                            {
+                                                <div class="ms-2" data-toggle="tooltip" data-placement="top" title="Submissions Pending Assessment"> @pendingSubmissions <i class="fa-solid fa-note-sticky" style="color: red"></i></div>
+                                            }
+                                            if (gradedSubmissions > 0)
+                                            {
+                                                <div class="ms-2" data-toggle="tooltip" data-placement="top" title="Graded Submissions"> @gradedSubmissions <i class="fa-solid fa-square-check" style="color: green"></i></div>
+                                            }
+
+                                                
+                                            
+                                            if (lecture.AssignmentLink != "")
+                                            {
+                                                <div class="end-50px position-absolute " title="This lecture has an assignment">
+                                                    <i class="fa-regular fa-clipboard"></i>
+                                                </div>
+                                            }
+                                            else
+                                            {
+
+                                                <div class="end-50px position-absolute " title="This lecture does not have an assignment">
+                                                    <i class="fa-solid fa-xmark"></i>
+                                                </div>
+
+                                                <div class="end-50px position-absolute" style="display: none">
+                                                    <form asp-controller="Lecture" asp-action="DeleteAssignment" asp-route-courseId="@course.Id" asp-route-lectureId="@lecture.Id" method="post">
+                                                       <i class="fa-solid fa-upload" data-placement="top" title="Upload new Assignment"></i>
+                                                    </form>
+                                                </div>
+                                            }
+                                        }
+
+                                    </button>
+                                </h2>
+                                @* ASSIGNMENTS LIST *@
+                                @{
+                                    
+                                    <div id="panelsStayOpen-@lecture.Id" class="accordion-collapse collapse @(Model.OpenPanel == lecture.Id ? "show" : "")" aria-labelledby="panelsStayOpen-headingOne" style="">
+
+                                        @if(lecture.AssignmentLink == "")   // lecture has no assignment
+                                            {
+                                                <div class="d-flex justify-content-between">
+                                                    <div class="accordion-body">
+                                                        <div>
+                                                                This lecture does not have an assignment
+                                                        </div>
+                                                    </div>
+                                                    <div class="accordion-body d-flex justify-content-end" style="padding: 0;">
+                                                        <div class="inline-block accordion-body end-10px">
+                                                            <div class="d-flex">
+                                                                <form asp-controller="Lecture" asp-action="Details" asp-route-courseId="@course.Id" asp-route-id="@lecture.Id" method="get" enctype="multipart/form-data">
+
+                                                                    <button type="submit" class="fa-solid fa-upload btn-icon"></button>
+                                                                </form>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                        }
+                                        else                                //has assignment but has no submissions yet
+                                        {
+                                            <div class="accordion-body d-flex justify-content-end" style="padding: 0;">
+                                                <div class="inline-block accordion-body end-10px" style=" padding-bottom: 0px;">
+                                                    <div class="d-flex" >
+        
+                                                        <form action="@Url.Action("DeleteAssignment", "Lecture", new { courseId = course.Id, lectureId = lecture.Id, requestLocation = "teacherPanel" })" method="post" title="Delete an Assignment">
+                                                            <button type="submit" class="btn-icon fa-solid fa-trash-can" disabled></button>
+                                                        </form>
+
+                                                        <a style="color: black" href="@Url.Action("GetAssignment", "Lecture", new { courseId = course.Id, lectureId = lecture.Id })">
+                                                            <i class="fa-solid fa-download btn-icon"></i>
+                                                        </a>
+
+                                                        <form asp-controller="Lecture" asp-action="Details" asp-route-courseId="@course.Id" asp-route-id="@lecture.Id"  method="get" enctype="multipart/form-data">
+                                                        
+                                                            <button type="submit" class="fa-solid fa-upload btn-icon" ></button>
+                                                        </form>
+
+                                                    </div>
+                                                </div>
+                                             </div>
+
+                                            <div class="">
+                                            @if (lecture.Submissions.Count() == 0) 
+                                            {
+                                                <div class="accordion-body">No submissions yet</div>
+                                            }
+                                            else
+                                            {
+                                                @foreach (var submission in @lecture.Submissions)
+                                                {
+
+                                                    <div class="accordion-body">
+
+                                                        @{
+                                                            User student = course.EnrolledStudents.FirstOrDefault(student => student.Id == submission.StudentId);
+                                                            if (student != null)
+                                                            {
+                                                                string fullName = $"{student.FirstName} {student.LastName}";
+
+                                                                <div>Submited by: @fullName</div>
+                                                                if (submission.Grade != null)
+                                                                {
+                                                                    <div class="position-relative d-flex align-items-center">
+                                                                        <div class="ms-2"><i class="fa-solid fa-square-check" style="color: green"></i> Grade: @submission.Grade</div>
+                                                                        <div class="inline-block position-absolute end-230px ">
+                                                                            <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#assessSubmissionModal-@submission.Id">
+                                                                                Change Grade
+                                                                            </button>
+
+                                                                        </div>
+
+                                                                        <div class="inline-block position-absolute end-90px ">
+
+                                                                            <form action="@Url.Action("GetSubmission", "Lecture", new { courseId = course.Id, lectureId = lecture.Id, studentId = submission.StudentId })" method="post">
+                                                                                <button type="submit" class="btn btn-sm btn-outline-primary">
+                                                                                    Download File
+                                                                                </button>
+                                                                            </form>
+
+                                                                        </div>
+
+                                                                    </div>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <div class="position-relative d-flex align-items-center">
+                                                                        <div class="inline-block ms-2"><i class="fa-solid fa-note-sticky" style="color: red"></i> Pending assessment </div>
+                                                                        <div class="inline-block position-absolute end-230px ">
+                                                                            <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#assessSubmissionModal-@submission.Id">
+                                                                                Assess
+                                                                            </button>
+
+                                                                        </div>
+
+                                                                        <div class="inline-block position-absolute end-90px ">
+
+                                                                            <form action="@Url.Action("GetSubmission", "Lecture", new { courseId = course.Id, lectureId = lecture.Id, studentId = submission.StudentId })" method="post">
+                                                                                <button type="submit" class="btn btn-sm btn-outline-primary">
+                                                                                    Download File
+                                                                                </button>
+                                                                            </form>
+
+                                                                        </div>
+                                                                    </div>
+                                                                }
+                                                            }
+
+                                                            <!-- Assess Submission Modal -->
+                                                            <div class="modal fade " id="assessSubmissionModal-@submission.Id" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="assessSubmissionModalLabel" aria-hidden="true">
+                                                                <div class="modal-dialog modal-dialog-centered">
+                                                                    <div class="modal-content">
+                                                                        <div class="modal-header">
+                                                                            <div class="modal-title fs-5" id="assessSubmissionModalLabel">
+                                                                                @course.Title
+                                                                                <br />
+                                                                                @lecture.Title
+                                                                                <br />
+
+                                                                            </div>
+                                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                                        </div>
+
+                                                                        <form id="assessSubmissionForm-@submission.Id" action="@Url.Action("AssessSubmission", "Lecture", new { courseId = course.Id, lectureId = lecture.Id })" method="post">
+
+                                                                            <div class="modal-body">
+                                                                                @{
+                                                                                    if (submission.Grade == null)
+                                                                                    {
+                                                                                        <div class="mb-3">
+                                                                                            Assessing submission from: @submission.Student.FirstName @submission.Student.LastName
+                                                                                        </div>
+                                                                                        <div>
+                                                                                            Select a value from 0 to 100:
+                                                                                            <input type="number" class="form-control" id="gradeInput-@submission.Id" name="grade" style="width: 100px;">
+                                                                                        </div>
+                                                                                    }
+                                                                                    else
+                                                                                    {
+                                                                                        <div class="mb-3">
+                                                                                            You are about to change the grade of: @submission.Student.FirstName @submission.Student.LastName
+                                                                                            <br />
+                                                                                            Current grade: @submission.Grade
+                                                                                        </div>
+                                                                                        <div>
+                                                                                            Select a value from 0 to 100:
+                                                                                            <input type="number" class="form-control" id="gradeInput-@submission.Id" name="grade" style="width: 100px;">
+                                                                                        </div>
+                                                                                    }
+                                                                                }
+
+                                                                            </div>
+                                                                            <div class="modal-footer">
+                                                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+
+                                                                                <input type="hidden" name="userId" value="@submission.StudentId" />
+                                                                                <input type="hidden" name="lectureId" value="@lecture.Id" />
+
+                                                                                        <button type="button" class="btn btn-primary" onclick="validateAndSubmit('@submission.Id')">Submit Grade</button>
+
+                                                                            </div>
+                                                                        </form>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        }
+
+
+                                                    </div>
+
+
+                                                }
+                                            }
+                                            </div>
+                                        }
+
+                                   
+                                    </div>
+                                }
+
+                            </div>
+                        </div>
+                        </div>
+                    }
+                }
+            }
+        }
+    </div>
+</div>
+
+
+
+
+<script>
+    function validateAndSubmit(submissionId) {
+        var gradeInput = document.getElementById("gradeInput-" + submissionId);
+
+        if (!gradeInput) {
+            // If grade input doesn't exist, proceed without validation
+            document.getElementById("assessSubmissionForm-" + submissionId).submit();
+            return;
+        }
+
+        var grade = parseInt(gradeInput.value);
+
+        if (isNaN(grade) || grade < 0 || grade > 100) {
+            // Display JavaScript alert for out of range grade
+            alert("Grade must be a number between 0 and 100.");
+            return false; // Prevent form submission
+        }
+
+        // If validation passes, submit the form
+        document.getElementById("assessSubmissionForm-" + submissionId).submit();
+    }
+</script>
+
+
+
+

@@ -1,0 +1,201 @@
+﻿@{
+    ViewData["Title"] = "Update User";
+    var userId = ViewContext.RouteData.Values["id"];
+
+    AvatarHelper avatarHelper = new AvatarHelper();
+    string avatarLocation = avatarHelper.GetAvatar(Model.Username);
+}
+
+@model UserUpdateViewModel
+
+@*DELETE USER MODAL*@
+<div class="modal fade" id="deleteUserModal" tabindex="-1" aria-labelledby="deleteUserLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteUserLabel">Delete User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete user @Model.FirstName @Model.LastName?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDelete">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@*DELETE NOTIFICATION*@
+<div id="notificationPopup" class="alert" role="alert" style="display: none; position: fixed; bottom: 20px; right: 20px; width: auto; max-width: 450px; z-index: 9999; box-shadow: 0 4px 8px rgba(0,0,0,0.1); padding-right: 15px; background: #a94442; color: white; border-radius: 4px;">
+    <span id="notificationMessage" style="display: inline-block; max-width: 80%;"></span>
+    <button id="closeNotification" style="display: inline-block; width: 20px; height: 20px; line-height: 20px; text-align: center; margin-left: 10px; border: none; background: none; color: white; float: right;">
+        <i class="fa-solid fa-xmark"></i>
+    </button>
+</div>
+
+
+<div style="max-width: 350px; margin: auto">
+    <form asp-controller="User" asp-action="Update" asp-route-id="@userId" method="post">
+
+        <div class="circle-avatar-container">
+            <img class="circle-avatar" src="~/images/avatars/@avatarLocation" alt="avatar" />
+
+            @{
+                if (avatarLocation != "avatar-default.jpg")
+                {
+                    <a asp-controller="User" asp-action="RemoveAvatar" asp-route-id="@userId" aria-label="Remove Avatar">
+                        <button type="button" class="btn-remove-avatar" id="changeAvatarButton" aria-label="Change Avatar">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </a>
+                }
+            }
+
+        </div>
+
+        <div class="d-flex" style="padding-bottom: 15px;">
+            <div class="me-auto">
+                <h3 style="text-align:center;">Update User</h3>
+            </div>
+
+            <div class="align-self-end">
+                <a asp-controller="User" asp-action="Index">
+                    <h5>Back</h5>
+                </a>
+            </div>
+        </div>
+
+ 
+        <div class="form-floating mb-3">
+            <input asp-for="Username" type="text" class="form-control" id="floatingUsername" placeholder="Username" required>
+            <label asp-for="Username" for="floatingUsername">Username</label>
+            <span asp-validation-for="Username" class="text-danger"></span>
+        </div>
+
+        <div class="form-floating mb-3">
+            <input asp-for="FirstName" type="text" class="form-control" id="floatingFirstName" placeholder="First Name" required>
+            <label asp-for="FirstName" for="floatingFirstName">First Name</label>
+            <span asp-validation-for="FirstName" class="text-danger"></span>
+        </div>
+
+        <div class="form-floating mb-3">
+            <input asp-for="LastName" type="text" class="form-control" id="floatingLastName" placeholder="Last Name" required>
+            <label asp-for="LastName">Last Name</label>
+            <span asp-validation-for="LastName" class="text-danger"></span>
+        </div>
+
+        <div class="form-floating mb-3">
+            <input asp-for="Email" type="email" class="form-control" placeholder="Email" required>
+            <label asp-for="Email">Email</label>
+            <span asp-validation-for="Email" class="text-danger"></span>
+        </div>
+
+
+        <div class="form-floating mb-3">
+
+            <select asp-for="UserRole" class="form-control" id="userRole" name="userRole" id="floatingRole">
+                @foreach (var role in Enum.GetValues(typeof(UserRole)))
+                {
+                    if ((UserRole)role != UserRole.Anonymous)
+                    {
+                        <option value="@role">@role</option>
+                    }
+                }
+            </select>
+            <label asp-for="UserRole" for="floatingRole">Role</label>
+
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="margin: 25px auto 0 auto; display: block; width: 100%">
+            <i class="fa-regular fa-pen-to-square"></i> Update User
+        </button>
+    </form>
+
+    <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteUserModal" style="margin: 15px auto 0 auto; display: block; width: 100%">
+        <i class="fa-regular fa-trash-can"></i> Delete User
+    </button>
+
+</div>
+
+<script>
+@*DELETE COURSE*@
+    document.getElementById('confirmDelete').addEventListener('click', function () {
+        fetch('/User/@userId/Delete', { method: 'GET' })
+            .then(response => response.json())
+            .then(({ success, errorMessage }) => {
+
+                let notificationPopup = document.getElementById('notificationPopup');
+                let notificationMessage = document.getElementById('notificationMessage');
+                notificationPopup.style.display = 'block';
+                notificationPopup.style.bottom = '20px';
+                notificationPopup.style.right = '20px';
+
+                if (success) {
+                    notificationPopup.classList.add('alert-success');
+                    notificationPopup.style.backgroundColor = '#3c763d';
+                    notificationMessage.innerHTML = 'User deleted successfully.<br>Redirecting to user page in 5 seconds...';
+
+                    let countdown = 5;
+                    let intervalId = setInterval(() => {
+                        countdown--;
+
+                        if (countdown <= 0) {
+                            clearInterval(intervalId);
+                            window.location.href = '/Users/';
+                        } else {
+                            notificationMessage.innerHTML = 'User deleted successfully.<br>Redirecting to user page in ' + countdown + ' seconds...';
+                        }
+                    }, 1000);
+                } else {
+                    notificationPopup.classList.add('alert-danger');
+                    notificationMessage.textContent = errorMessage;
+                }
+
+                let myModal = bootstrap.Modal.getInstance(document.getElementById('deleteUserModal'));
+                myModal.hide();
+            });
+    });
+
+@*DELETE NOTIFICATION*@
+    document.getElementById('closeNotification').addEventListener('click', function () {
+        let notificationPopup = document.getElementById('notificationPopup');
+        notificationPopup.style.display = 'none';
+    });
+
+</script>
+
+<style>
+    .circle-avatar-container {
+        position: relative;
+        width: 100px;
+        height: 100px;
+        margin: 0 auto 15px auto;
+    }
+
+    .btn-remove-avatar {
+        position: absolute;
+        bottom: 0px;
+        right: -5px;
+        border: none;
+        background: rgba(255, 29, 29, 0.8);
+        border-radius: 50%;
+        padding: 0;
+        cursor: pointer;
+        outline: none;
+        width: 30px;
+        height: 30px;
+        object-fit: cover;
+    }
+
+    .btn-remove-avatar:hover {
+        background: rgba(213, 16, 16, 0.5);
+    }
+
+    .btn-remove-avatar i {
+        color: white;
+        font-size: 16px;
+    }
+
+</style>

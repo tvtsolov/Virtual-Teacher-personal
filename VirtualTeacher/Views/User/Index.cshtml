@@ -1,0 +1,228 @@
+﻿@{
+    ViewData["Title"] = "Users";
+    var userCount = Convert.ToInt32(ViewData["UserCount"]);
+    var searchUserCount = Model.Users.Count();
+    var applicationCount = Model.Applications.Count();
+
+    AvatarHelper avatarHelper = new AvatarHelper();
+}
+
+@model UserIndexViewModel
+
+@*TEACHER APPLICATION BLOCK*@
+<div class="accordion" id="accordionExample" style="width: 47rem; margin-bottom: 20px;">
+    <div class="accordion-item">
+
+        <h2 class="accordion-header">
+            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                <b>Teacher Applications</b>
+                @{
+                    if (applicationCount != 0)
+                    {
+                        <span> (@applicationCount unresolved)</span>
+                    }
+                }
+            </button>
+        </h2>
+
+        <div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#accordionExample">
+
+            <div class="accordion-body">
+                @{
+                    if (Model.Applications.Count() == 0)
+                    {
+                        <span> No applications.</span>
+                    }
+                    else
+                    {
+                        int counter = 1;
+
+                        foreach (var application in Model.Applications)
+                        {
+                            string avatarLocation = avatarHelper.GetAvatar(application.Student.Username);
+
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <span>
+                                        @counter.
+                                        <img class="avatar-small" src="~/images/avatars/@avatarLocation" alt="avatar" />
+
+                                        @application.Student.FirstName @application.Student.LastName (&#64;@application.Student.Username) - @application.Student.Email 
+                                    </span>
+                                </div>
+
+                                <div>
+                                    <a asp-controller="Application" asp-action="Resolve" asp-route-applicationId="@application.Id" asp-route-verdict="approve" class="btn btn-success btn-sm" method="get">Approve</a>
+                                    <a asp-controller="Application" asp-action="Resolve" asp-route-applicationId="@application.Id" asp-route-verdict="deny" class="btn btn-danger btn-sm" method="get">Deny</a>
+                                </div>
+                                
+                            </div>
+                           
+                            if (counter != applicationCount)
+                            {
+                                <hr />
+                            }
+
+                            counter++;
+                        }
+                    }
+
+                }
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<hr style="width: 47rem;"/>
+
+@*USER COUNTER & SORT DROPDOWN*@
+<div class="d-flex" style="margin-bottom: 5px">
+    <span style="margin-right: 15px;">The site currently has @userCount registered users</span>
+</div>
+
+<div class="d-flex justify-content-between">
+    <div style="width: 75%;">
+        @{
+            if (Model.Users.Count == 0)
+            {
+                <p>
+                    No users found. <a asp-controller="User" asp-action="Index" style="text-decoration: none;">Reset?</a>
+                </p>
+            }
+            else
+            {
+                int counter = 1;
+
+                foreach (var user in Model.Users)
+                {
+                    string avatarLocation = avatarHelper.GetAvatar(user.Username);
+
+                    <div class="card" style="margin-bottom: 5px;">
+                        <a a asp-controller="User" asp-action="Update" asp-route-id="@user.Id" class="custom-hover" style="text-decoration:none; color: #000000">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+
+                                    <div>
+                                        @counter.                                     
+                                        <img class="avatar-small" src="~/images/avatars/@avatarLocation" alt="avatar" />
+                                        @user.FirstName @user.LastName (&#64;@user.Username) - @user.Email
+                                    </div>
+
+                                    <div>@user.UserRole</div>
+                                    
+                                </div>  
+                            </div>
+                        </a>
+                    </div>
+
+                    counter++;
+                }
+            }
+        }
+    </div>
+
+    @*FILTERS SIDE MENU*@
+    <div style="width: 22%">
+        <div class="card border-light mb-3">
+            <div class="card-header">Filters</div>
+            <div class="card-body">
+                <form id="userFilterForm">
+                    <div class="input-group mb-3">
+                        <input type="text" name="FirstName" class="form-control form-control-sm" placeholder="First name">
+                        <input type="text" name="LastName" class="form-control form-control-sm" placeholder="Last name">
+                    </div>
+
+                    <div class="mb-3">
+                        <input type="text" name="Username" class="form-control form-control-sm" placeholder="Username" />
+                    </div>
+
+                    <div class="mb-3">
+                        <input type="text" name="Email" class="form-control form-control-sm" placeholder="Email" />
+                    </div>
+
+                    <div class="mb-3">
+                        <select name="Role" class="form-control form-control-sm">
+                            <option value="" selected>Select Role</option>
+                            <option value="Student">Student</option>
+                            <option value="Teacher">Teacher</option>
+                            <option value="Admin">Admin</option>
+                        </select>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <input type="submit" value="Search" class="btn btn-secondary btn-sm">
+                        </div>
+
+                        <div>
+                            <div class="dropdown">
+                                <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Sort By
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" asp-controller="User" asp-action="Index" asp-route-SortBy="username" asp-route-SortOrder="@ViewData["SortOrder"]">Username</a></li>
+                                    <li><a class="dropdown-item" asp-controller="User" asp-action="Index" asp-route-SortBy="firstname" asp-route-SortOrder="@ViewData["SortOrder"]">First Name </a></li>
+                                    <li><a class="dropdown-item" asp-controller="User" asp-action="Index" asp-route-SortBy="lastname" asp-route-SortOrder="@ViewData["SortOrder"]">Last Name</a></li>
+                                    <li><a class="dropdown-item" asp-controller="User" asp-action="Index" asp-route-SortBy="role" asp-route-SortOrder="@ViewData["SortOrder"]">Role</a> </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </form>           
+            </div>
+        </div>
+    </div>
+</div>
+
+@*PAGINATION*@
+@{
+    string prevState = (Model.Users.HasPreviousPage) ? "" : "disabled";
+    string nextState = (Model.Users.HasNextPage) ? "" : "disabled";
+    int prevPage = Model.Users.PageNumber - 1;
+    int nextPage = Model.Users.PageNumber + 1;
+}
+
+<div class="d-flex justify-content-center" style="margin-top: 5px;">
+    <nav aria-label="Page navigation">
+        <ul class="pagination pagination-custom-colors">
+
+            <li class="page-item @prevState">
+                <a class="page-link" asp-controller="User" asp-action="Index" asp-route-PageNumber="@prevPage" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+
+            @{
+                for (int i = 1; i <= Model.Users.TotalPages; i++)
+                {
+                    if (i == Model.Users.PageNumber)
+                    {
+                        <li class="page-item">
+                            <a class="page-link active" aria-current="page">@i</a>
+                        </li>
+
+                    }
+                    else
+                    {
+                        <li class="page-item">
+                            <a class="page-link" asp-controller="User" asp-action="Index" asp-route-PageNumber="@i">@i</a>
+                        </li>
+                    }
+                }
+            }
+
+            <li class="page-item @nextState">
+                <a class="page-link" asp-controller="User" asp-action="Index" asp-route-PageNumber="@nextPage" aria-label="Previous">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+
+        </ul>
+    </nav>
+
+</div>
+
+

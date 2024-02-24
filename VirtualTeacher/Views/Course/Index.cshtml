@@ -1,0 +1,406 @@
+﻿@{
+    ViewData["Title"] = "Courses";
+    string byTitle = "title";
+    string byRating = "rating";
+}
+
+@model CoursesListViewModel
+
+@* SEARCHBAR AND BUTTONS ON TOP *@
+<div style="display: flex; justify-content: space-between; align-items: center;">
+    <span>
+        <form asp-controller="Course" asp-action="Index" method="Get">
+            <div class="input-group mb-3 mt-3 ps-2 pe-2">
+                <button class="btn btn-outline-secondary" type="button" id="button-addon1">Go</button>
+                <input type="text" class="form-control " name="Title" placeholder="Search by course title" aria-label="search area">
+            </div>
+        </form>
+    </span>
+
+    <div class="dropdown">
+        <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Sort By
+        </button>
+        <ul class="dropdown-menu">
+            <form asp-controller="Course" asp-action="Index" method="get">
+                <input type="hidden" name="Topic" value="@Model.Parameters.Topic" />
+                <input type="hidden" name="TeacherUsername" value="@Model.Parameters.TeacherUsername" />
+
+            <li><button type="submit" name="SortBy" value="title" class="dropdown-item">Sort by Title</button></li>
+            <li><button type="submit" name="SortBy" value="rating" class="dropdown-item">Sort by Rating</button></li>
+            </form>
+        </ul>
+    </div>
+
+    <span style="flex" class="ms-1 me-1">
+        @if (User.Identity is { IsAuthenticated: true } && User.IsInRole("Teacher"))
+        {
+            <a asp-controller="Course" asp-action="Index" asp-action="Index" asp-route-TeacherUsername="@User.FindFirst(ClaimTypes.Name).Value.ToString()" class="btn btn-primary" >Courses I am Teaching</a>
+        }
+    </span>
+    <span style="flex: 1;" class="ms-1 me-1">
+        @if (User.Identity is { IsAuthenticated: true } && User.IsInRole("Teacher"))
+        {
+            <a asp-controller="Course" asp-action="Index" asp-action="Index" asp-route-TeacherUsername="@User.FindFirst(ClaimTypes.Name).Value.ToString()" asp-route-SeeDrafts="true" class="btn btn-primary">Drafts</a>
+        }
+    </span>
+
+    <span class="ms-1 me-1">
+        @if (User.Identity is { IsAuthenticated: true } && User.IsInRole("Admin") || User.IsInRole("Teacher"))
+        {
+            <a asp-controller="Course" asp-action="Create" class="btn btn-outline-info">Create a new course</a>
+        }
+    </span>
+
+</div>
+
+
+
+@{
+    string prevState = (Model.Courses.HasPreviousPage) ? "" : "disabled";
+    string nextState = (Model.Courses.HasNextPage) ? "" : "disabled";
+    int prevPage = Model.Courses.PageNumber - 1;
+    int nextPage = Model.Courses.PageNumber + 1;
+    const int DESCTRIPTIONSIZE = 110;
+    string shortDescription;
+    string fullDescription;
+}
+
+<div class="d-flex justify-content-between">
+
+    @* COURSES LIST *@
+
+    <div style="width: 70%">
+        @{
+            if (Model.Courses != null)
+            {
+
+                foreach (var course in Model.Courses)
+                {
+                    fullDescription = course.Description;
+                    if (fullDescription.Length > DESCTRIPTIONSIZE)
+                    {
+                        shortDescription = fullDescription.Substring(0, DESCTRIPTIONSIZE);
+                        shortDescription += "...";
+                    } 
+                    else
+                    {
+                        shortDescription = fullDescription;
+                    }
+
+                    <div class="card mb-3 position-relative" >  @* if for teachers *@
+
+                       @{bool isDraft = !course.Published;}
+
+                        <div class="  card-body custom-card-height-1 @(isDraft? "border border-warning" : "")  ">
+
+                            <a class="inline-block" asp-controller="Course" asp-action="Details" asp-route-id="@course.Id"><H5>@course.Title</H5></a>                             
+                            <span class="text-danger text-end bottom-25px"> @(isDraft ? "(Draft)" : "")</span>
+
+                            
+                            <br/>
+                            
+                            @{
+                                if (course.StartingDate < DateTime.Now)
+                                {
+                                    <div style="color: green; display:inline">Ongoing </div>
+                                }
+                                else
+                                {
+                                    <div style="color: forestgreen;  display:inline">Starts: @course.StartingDate?.ToString("dd/MMM/yyyy") </div>
+                                }
+                            }
+
+                            <div class="position-absolute start-15px end-120px" style="z-index: 1000;">
+                                <span id="shortDescription-@course.Id">@shortDescription</span>
+                                @{
+                                    if (@shortDescription.Length > DESCTRIPTIONSIZE)
+                                    {
+                                        <button class="btn btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample-@course.Id" aria-expanded="false" aria-controls="collapseExample">
+                                            <i class="text-secondary fa-solid fa-caret-down " i></i>
+                                        </button>
+
+                                        <div class="collapse" id="collapseExample-@course.Id" style="z-index: 5000;">
+                                            <div class="card card-body">
+                                                @fullDescription    
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                            </div>    
+
+
+                            <div class="position-absolute top-10px end-15px">
+                                <img class="language-flag" src="~/images/flags/svgFlags/@(course.CourseTopic).svg" alt="" />
+                            </div>
+
+                            <div>
+                                <div class="position-absolute bottom-15px start-15px">
+                                    @{
+                                        if (@course.ActiveTeachers.Count() > 1)
+                                        {
+                                            <text>Teachers:</text>
+                                        }
+                                        else
+                                        {
+                                            <text>Teacher:</text>
+                                        }
+                                    }
+                                    <div class="btn btn-outline-primary btn-sm">
+                                        <text> @course.ActiveTeachers[0].Username </text>
+                                    </div>
+                                        @{
+                                            if (@course.ActiveTeachers.Count() > 1)
+                                            {
+                                            <div class="btn btn-outline-primary btn-sm">
+                                                <text>@course.ActiveTeachers[1].Username</text>
+                                            </div>
+                                            }
+                                        }
+                                    
+                                </div>
+
+
+                                <div class="position-absolute bottom-10px end-15px">
+                                    @{
+                                        double rating = (course.Ratings.Any() ? course.Ratings.Average(r => r.Value) : 0.0);
+                                        double roundedRating = Math.Round(rating * 2) / 2;
+                                    }
+
+                                    <div>
+                                        @{
+                                            if (course.EnrolledStudents.Count() > 0)
+                                            {
+                                                <div>
+                                                    @course.EnrolledStudents.Count() (enrolled)
+                                                </div>
+                                            }
+                                        }
+                                    </div>
+
+
+                                    Rating:
+                                    @if (@rating == 0)
+                                    {
+                                        <div>no ratings yet</div>
+                                    }
+                                    else
+                                    {
+                                        @rating.ToString("F1");
+                                        
+                                        @await Html.PartialAsync("_DisplayRating", roundedRating)
+                                    }
+
+                                </div>
+
+                             </div>
+                        </div>
+
+
+                    </div>
+                }
+            } else
+            {
+                <H1>There are no courses at the moment :3</H1>
+            }
+        }
+      @* PAGE BUTTONS *@
+
+    <div class="d-flex justify-content-center">
+        <nav aria-label="Page navigation">
+            <ul class="pagination">
+
+                    <li class="page-item @prevState">
+                        <form asp-controller="Course" asp-action="Index" method="get">
+                            <input type="hidden" name="PageNumber" value="@prevPage" />
+                            <input type="hidden" name="Topic" value="@Model.Parameters.Topic" />
+                            <input type="hidden" name="TeacherUsername" value="@Model.Parameters.TeacherUsername" />
+                            <input type="hidden" name="SortBy" value="@Model.Parameters.SortBy" />
+                            <input type="hidden" name="SeeDrafts" value="@Model.Parameters.SeeDrafts.ToString().ToLower()" />
+
+                            <button type="submit" class="page-link @prevState" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </button>
+                        </form>
+                    </li>
+
+
+                @{
+                    for (int i = 1; i <= Model.Courses.TotalPages; i++)
+                    {
+                        if (i == Model.Courses.PageNumber)
+                        {
+                            <li class="page-item">
+                                <a class="page-link active" aria-current="page">@i</a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="page-item">
+                                <form asp-controller="Course" asp-action="Index" method="get">
+                                    <input type="hidden" name="PageNumber" value="@i" />
+                                    <input type="hidden" name="Topic" value="@Model.Parameters.Topic" />
+                                    <input type="hidden" name="TeacherUsername" value="@Model.Parameters.TeacherUsername" />
+                                    <input type="hidden" name="SortBy" value="@Model.Parameters.SortBy" />
+                                        <input type="hidden" name="SeeDrafts" value="@Model.Parameters.SeeDrafts.ToString().ToLower()" />
+
+                                    <button type="submit" class="page-link">@i</button>
+                                </form>
+                            </li>
+                        }
+                    }
+                }
+
+                    <li class="page-item @nextState">
+                        <form asp-controller="Course" asp-action="Index" method="get">
+                            <input type="hidden" name="PageNumber" value="@nextPage" />
+                            <input type="hidden" name="Topic" value="@Model.Parameters.Topic" />
+                            <input type="hidden" name="TeacherUsername" value="@Model.Parameters.TeacherUsername" />
+                            <input type="hidden" name="SortBy" value="@Model.Parameters.SortBy" />
+                            <input type="hidden" name="SeeDrafts" value="@Model.Parameters.SeeDrafts.ToString().ToLower()" />
+
+                            <button type="submit" class="page-link @nextState aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </button>
+                        </form>
+                    </li>
+
+            </ul>
+        </nav>
+
+    </div>
+
+
+    </div>
+
+
+
+    @* FILTERS *@
+
+    <div style="width: 29%">
+
+        <div class="card border-light mb-3">
+            <form asp-controller="Course" asp-action="Index" method="Get" id="filterForm">
+                <div class="card-header">Filters:</div>
+                <div class="card-body">
+
+                    <div class="list-group list-group-flush">
+
+                        <div class="list-group-item"><strong>Topics:</strong> </div>
+                        @{
+                            if (@Model.AllTopics != null)
+                            {
+                                foreach (var topic in @Model.AllTopics)
+                                {
+                                    <div class="list-group-item ps-4">
+                                        <input type="radio" class="deselectable" id="@("checkbox_" + topic)" name="Topic" value=@topic @(Model.Parameters.Topic.ToString() == topic ? "checked" : "")>
+                                        @topic
+                                    </div>
+                                }
+                            }
+                        }
+                        <div class="list-group-item"><strong>Teachers: </strong></div>
+                        @{
+                            if (@Model.AllTeachers != null)
+                            {
+                                foreach (var username in @Model.AllTeachers)
+                                {
+                                    <div class="list-group-item ps-4">
+                                        <input type="radio" class="deselectable" id="@("checkbox_" + username)" name="TeacherUsername" value="@username" @(Model.Parameters.TeacherUsername == username ? "checked" : "")>
+                                        @username
+                                    </div>
+                                }
+                            }
+                        }
+                        <div class="list-group-item " >
+                            <div style="display: block;" class="mb-4 mt-2">
+                                <strong margin-bottom: 10px;>Minimum Rating:</strong>
+
+                             @* RATING STARS *@
+
+                                <div class="rating-group " id="font-size-popup">
+
+                                    <label aria-label="1 star" class="rating__label" for="rating2-10"><i class="rating__icon rating__icon--star fa fa-star"></i></label>
+                                        <input class="rating__input" name="MinRating" id="rating2-10" value="1" type="radio" @(Model.Parameters.MinRating == 1 ? "checked" : "")>
+
+                                    <label aria-label="2 stars" class="rating__label" for="rating2-20"><i class="rating__icon rating__icon--star fa fa-star"></i></label>
+                                        <input class="rating__input" name="MinRating" id="rating2-20" value="2" type="radio" @(Model.Parameters.MinRating == 2 ? "checked" : "")>
+
+                                    <label aria-label="3 stars" class="rating__label" for="rating2-30"><i class="rating__icon rating__icon--star fa fa-star"></i></label>
+                                        <input class="rating__input" name="MinRating" id="rating2-30" value="3" type="radio" @(Model.Parameters.MinRating == 3 ? "checked" : "")>
+
+                                    <label aria-label="4 stars" class="rating__label" for="rating2-40"><i class="rating__icon rating__icon--star fa fa-star"></i></label>
+                                        <input class="rating__input" name="MinRating" id="rating2-40" value="4" type="radio" @(Model.Parameters.MinRating == 4 ? "checked" : "")>
+
+                                    <label aria-label="5 stars" class="rating__label" for="rating2-50"><i class="rating__icon rating__icon--star fa fa-star"></i></label>
+                                        <input class="rating__input" name="MinRating" id="rating2-50" value="5" type="radio" @(Model.Parameters.MinRating == 5 ? "checked" : "")>
+                                </div>
+
+                            </div>
+
+                            <div class="modal-footer">
+                                <input type="hidden" name="" value="" class="form-input" />
+                                <div class="left-side-container">
+                                    <button type="button" class="btn btn-outline-secondary" onclick="resetFilters()">Reset</button>
+                                </div>
+
+                                <button type="submit" class="btn btn-outline-secondary">Go</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+
+
+@* SCRIPTS *@
+
+<script>
+    function resetFilters() {
+        var radioButtons = document.querySelectorAll('input[type="radio"]');
+        radioButtons.forEach(function (radio) {
+            radio.checked = false;
+        });
+    }
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Get all radio buttons with the class "deselectable"
+        var radioButtons = document.querySelectorAll('.deselectable');
+
+        // Add click event listener to each radio button
+        radioButtons.forEach(function (radioButton) {
+            var wasChecked = radioButton.checked; // Track previous checked state
+            radioButton.addEventListener('click', function () {
+                // If the radio button was previously checked, deselect it
+                if (wasChecked) {
+                    this.checked = false;
+                }
+                wasChecked = !wasChecked; // Update previous checked state
+            });
+        });
+    });
+</script>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $(document).on('click', function (event) {
+            // Check if the clicked element is not inside the collapse content
+            if (!$(event.target).closest('.collapse').length) {
+                // Collapse all currently expanded collapse elements
+                $('.collapse').collapse('hide');
+            }
+        });
+
+        // Prevent clicks inside the collapse from closing it
+        $('.collapse').on('click', function (event) {
+            event.stopPropagation();
+        });
+    });
+</script>

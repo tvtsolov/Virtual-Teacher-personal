@@ -1,0 +1,440 @@
+﻿@{
+    ViewData["Title"] = "Course Details";
+    string currentUser = User.Identity.IsAuthenticated ? User.Identity.Name : "";
+
+    int loggedUserId = User.Identity.IsAuthenticated ? int.Parse(User.FindFirstValue("UserId")) : 0;
+
+    bool isEnrolled = Model.EnrolledStudents.Any(s => s.Id == loggedUserId);
+    bool isActiveTeacherOrAdmin = User.Identity.IsAuthenticated && (Model.ActiveTeachers.Any(t => t.Username == User.Identity.Name) || User.IsInRole("Admin"));
+
+    bool loggedUserHasRating = Model.Ratings.Any(r => r.Student.Username == currentUser);
+    string baseReviewText = "Place your review here...";
+    double baseRatingValue = 5;
+
+    string? dateDisplay = Model.StartingDate > DateTime.Now ? Model.StartingDate?.ToString("MMM dd, yyyy") : "Ongoing";
+
+    AvatarHelper avatarHelper = new AvatarHelper();
+}
+
+@model Course
+
+@*INVITE A FRIEND MODAL*@
+<div class="modal fade" id="inviteFriendModal" aria-hidden="true" aria-labelledby="inviteFriendModalLabel" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="inviteFriendModalLabel">Invite a friend</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <form asp-controller="Course" asp-action="InviteFriend" asp-route-courseId="@Model.Id" method="post">
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email address</label>
+                        <input type="email" class="form-control" name="email" placeholder="e.g. name@example.com" aria-describedby="emailHelp">
+                    </div>
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Your friend's name</label>
+                        <input type="text" class="form-control" name="name" placeholder="e.g. John Smith">
+                    </div>
+
+                    <div style="text-align: center;">
+                        <button type="submit" value="post" class="btn btn-primary btn-sm">
+                            <i class="fa-regular fa-paper-plane"></i> Send Invitation
+                        </button>
+                    </div>
+
+
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@*STUDENT MODAL*@
+<div class="modal fade" id="studentModal" tabindex="-1" aria-labelledby="studentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="studentModalLabel">Students</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                @{
+                    if (Model.EnrolledStudents.Count() != 0)
+                    {
+                        <div class="mb-3">
+                            <input type="text" class="form-control form-control-sm" id="searchBar" placeholder="Search">
+                        </div>
+                    }
+                }
+
+                <ul class="list-group list-group-flush" style="max-height: 250px; overflow-y: auto;">
+                    @{
+                        if (Model.EnrolledStudents.Count() != 0)
+                        {
+                            foreach (var student in Model.EnrolledStudents)
+                            {
+                                string avatarLocation = avatarHelper.GetAvatar(student.Username);
+
+                                <li class="list-group-item">
+                                    <img class="avatar-small" src="~/images/avatars/@avatarLocation" alt="avatar" />
+                                    @student.FirstName @student.LastName
+                                </li>
+                            }
+                        }
+                        else
+                        {
+                            <li class="list-group-item">
+                                There are no enrolled students.
+                            </li>
+                        }
+                    }
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary btn-sm" data-bs-target="#inviteFriendModal" data-bs-toggle="modal">Invite a friend</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@*RATING MODAL*@
+<div class="modal fade" id="rateModal" tabindex="-1" aria-labelledby="rateModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content centered-text">
+
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="rateModal">Rate '@Model.Title'</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="ratingForm" asp-controller="Rating" asp-action="Create" method="post">
+
+                <div class="modal-body">
+
+                    @{
+                        if (loggedUserHasRating == true)
+                        {
+                            Rating? userRating = @Model.Ratings.FirstOrDefault(r => r.Student.Username == currentUser);
+
+                            baseRatingValue = userRating.Value;
+                            baseReviewText = userRating.Review;
+                        }
+                    }
+
+
+                    <div class="d-flex justify-content-center rating-group mb-3" style="font-size: 2rem;">
+
+                        <label aria-label="0.5 stars" class="rating__label rating__label--half" for="rating2-05"><i class="rating__icon rating__icon--star fa fa-star-half"></i></label>
+                        <input class="rating__input" name="Value" id="rating2-05" value="0.5" type="radio" @(baseRatingValue == 0.5 ? "checked" : "") };>
+
+                        <label aria-label="1 star" class="rating__label" for="rating2-10"><i class="rating__icon rating__icon--star fa fa-star"></i></label>
+                        <input class="rating__input" name="Value" id="rating2-10" value="1" type="radio" @(baseRatingValue == 1 ? "checked" : "")>
+
+                        <label aria-label="1.5 stars" class="rating__label rating__label--half" for="rating2-15"><i class="rating__icon rating__icon--star fa fa-star-half"></i></label>
+                        <input class="rating__input" name="Value" id="rating2-15" value="1.5" type="radio" @(baseRatingValue == 1.5 ? "checked" : "") };>
+
+                        <label aria-label="2 stars" class="rating__label" for="rating2-20"><i class="rating__icon rating__icon--star fa fa-star"></i></label>
+                        <input class="rating__input" name="Value" id="rating2-20" value="2" type="radio" @(baseRatingValue == 2 ? "checked" : "")>
+
+                        <label aria-label="2.5 stars" class="rating__label rating__label--half" for="rating2-25"><i class="rating__icon rating__icon--star fa fa-star-half"></i></label>
+                        <input class="rating__input" name="Value" id="rating2-25" value="2.5" type="radio" @(baseRatingValue == 2.5 ? "checked" : "") };};>
+
+                        <label aria-label="3 stars" class="rating__label" for="rating2-30"><i class="rating__icon rating__icon--star fa fa-star"></i></label>
+                        <input class="rating__input" name="Value" id="rating2-30" value="3" type="radio" @(baseRatingValue == 3 ? "checked" : "")>
+
+                        <label aria-label="3.5 stars" class="rating__label rating__label--half" for="rating2-35"><i class="rating__icon rating__icon--star fa fa-star-half"></i></label>
+                        <input class="rating__input" name="Value" id="rating2-35" value="3.5" type="radio" @(baseRatingValue == 3.5 ? "checked" : "") };>
+
+                        <label aria-label="4 stars" class="rating__label" for="rating2-40"><i class="rating__icon rating__icon--star fa fa-star"></i></label>
+                        <input class="rating__input" name="Value" id="rating2-40" value="4" type="radio" @(baseRatingValue == 4 ? "checked" : "")>
+
+                        <label aria-label="4.5 stars" class="rating__label rating__label--half" for="rating2-45"><i class="rating__icon rating__icon--star fa fa-star-half"></i></label>
+                        <input class="rating__input" name="Value" id="rating2-45" value="4.5" type="radio" @(baseRatingValue == 4.5 ? "checked" : "") };>
+
+                        <label aria-label="5 stars" class="rating__label" for="rating2-50"><i class="rating__icon rating__icon--star fa fa-star"></i></label>
+                        <input class="rating__input" name="Value" id="rating2-50" value="5" type="radio" @(baseRatingValue == 5 ? "checked" : "")>
+
+                    </div>
+
+                    @*todo - validation*@
+                    <div class="mb-3">
+                        <label for="message-text" class="col-form-label">Review</label>
+                        <textarea class="form-control" rows=2 name="Review" placeholder="@baseReviewText"></textarea>
+                    </div>
+
+                    <input type="hidden" name="courseId" value="@Model.Id" class="form-input" />
+                </div>
+            </form>
+
+            <div class="modal-footer justify-content-center">
+                @{
+                    if (loggedUserHasRating)
+                    {
+                        <form asp-controller="Rating" asp-action="Delete" method="post">
+                            <input type="hidden" name="courseId" value="@Model.Id" class="form-input" />
+                            <button type="submit" class="btn btn-danger">Delete</button>
+                        </form>
+                    }
+                }
+                <button id="postButton" type="submit" class="btn btn-success">Post</button>
+            </div>
+
+
+        </div>
+    </div>
+</div>
+
+@*COURSE HEADER*@
+<div class="d-flex course-header justify-content-between">
+
+    <div class="d-flex flex-column p-2" style="width: 75%">
+        <div>
+            <h4>
+                <img class="language-flag" src="~/images/flags/svgFlags/@(Model.CourseTopic).svg" alt="" />
+                @Model.Title
+                @{
+                    if (!Model.Published)
+                    {
+                        <span> (Draft)</span>
+                    }
+                }
+            </h4>
+        </div>
+
+        <div style="margin-bottom: 1px;">
+            <i class="fa-regular fa-calendar" style="margin-left:4px; margin-right:1px;"></i> @dateDisplay
+            <i class="fa-regular fa-user" style="margin-left:4px; margin-right: 1px;"></i> @Model.EnrolledStudents.Count()
+            <i class="fa-regular fa-file" style="margin-left:4px; margin-right: 1px;"></i> @Model.Lectures.Count()
+        </div>
+
+    </div>
+
+    <div class="d-flex align-items-center">
+        @{
+            @*todo change this with smth better*@
+            if (isEnrolled)
+            {
+                <button type="button" class="btn btn-outline-success">Enrolled</button>
+
+            }
+            else if (Model.ActiveTeachers.Any(teacher => teacher.Id == loggedUserId))
+            {
+                <button type="button" class="btn btn-outline-secondary">Teaching</button>
+            }
+            else if (loggedUserId == 0)
+            {
+                <form asp-controller="Account" asp-action="Login" method="get">
+                    <button type="submit" class="btn btn-success">Join</button>
+                </form>
+            }
+            else
+            {
+                <form asp-controller="Course" asp-action="Enroll" asp-route-id="@Model.Id" method="post">
+                    <button type="submit" class="btn btn-success">Enroll</button>
+                </form>
+            }
+        }
+    </div>
+
+</div>
+<br/>
+
+
+<div class="row" style="padding-left: 12px;">
+    <div class="card p-2 col-md-9">
+        @*VIDEO*@
+        <div>
+            <iframe style="width: 100%; aspect-ratio: 16/9" src="@Model.VideoLink" title="Course Video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+        </div>
+
+        @*INFO BLOCK*@
+        <div>
+            <div class="d-flex flex-column" style="width: 100%">
+                <div>
+                    @Model.Description
+                </div>
+                <hr />
+                <div class="d-flex justify-content-between">
+                    <div>
+                        Teachers:
+                        @{
+                            foreach (var teacher in Model.ActiveTeachers)
+                            {
+                                string avatarLocation = avatarHelper.GetAvatar(teacher.Username);
+
+                                <a href="#" class="btn btn-secondary btn-sm">
+                                    <img class="avatar-small" src="~/images/avatars/@avatarLocation" alt="avatar" />
+                                    @teacher.FirstName @teacher.LastName
+                                </a>
+                            }
+                        }
+
+                        @{
+                            @*ADD TEACHER MODAL BUTTON*@
+                            if (isActiveTeacherOrAdmin)
+                            {
+                                <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#teachersModal">
+                                    Add
+                                </button>
+
+                                @await Component.InvokeAsync("TeachersModal", Model.Id)
+                            }
+                        }
+                        
+                        @*STUDENT MODAL BUTTON*@
+                        @{
+                            if (isEnrolled || isActiveTeacherOrAdmin)
+                            {
+                                <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#studentModal">Students</button>
+                            }
+                        }
+                    </div>
+
+                    <div>
+                        @*CREATE RATING MODAL BUTTON*@
+                        @{
+                            if (isEnrolled || (User.Identity.IsAuthenticated &&  User.IsInRole("Admin")))
+                                        {
+                                <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#rateModal">Rate</button>
+                            }
+                        }
+                        @{
+                            if (isActiveTeacherOrAdmin)
+                            {
+                                <a class="btn btn-success btn-sm" asp-controller="Course" asp-action="Update" asp-route-id="@Model.Id">Update course</a>
+                            }
+                        }
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    @*LECTURE MENU*@
+    <div class="col-md-3" style="width: 25%; height: 520px;">
+        <div class="card" style="width: 100%">
+
+            <div class="card-header">
+                <div class="d-flex justify-content-between">
+                    <strong>Lectures</strong>
+                    @{
+                        if (isActiveTeacherOrAdmin)
+                        {
+                            <a class="btn btn-success btn-sm" asp-controller="Lecture" asp-action="Create" asp-route-courseId="@Model.Id">New</a>
+                        }
+                    }
+                </div>
+            </div>
+
+            <ul class="list-group list-group-flush" style="max-height: 500px; overflow-y: auto;">
+                @{
+                    if (!isEnrolled && !isActiveTeacherOrAdmin)
+                    {
+                        <li class="list-group-item"> Enroll to see all lectures</li>
+                    }
+                    else
+                    {
+                        if (Model.Lectures.Count() != 0)
+                        {
+                            int counter = 1;
+
+                            foreach (var lecture in Model.Lectures)
+                            {
+                                <a asp-controller="Lecture" asp-action="Details" asp-route-courseId="@Model.Id" asp-route-id="@lecture.Id" style="text-decoration:none;">
+                                <li class="list-group-item custom-hover">
+                                        @counter. @lecture.Title
+                                </li>
+                                </a>
+
+                                counter++;
+                            }
+                        }
+                        else
+                        {
+                            <li class="list-group-item custom-hover">
+                                There are no lectures yet.
+                            </li>
+                        }
+
+                    }
+                }
+            </ul>
+        </div>
+    </div>
+</div>
+
+<hr/>
+
+@*RATINGS BLOCK*@
+<div class="mt-2">
+
+    <h3>
+        Ratings
+    </h3>
+
+    @{
+        if (Model.Ratings.Count == 0)
+        {
+            <span>No ratings</span>
+        }
+        else
+        {
+            <ol class="list-group list-group-flush">
+                @foreach (var rating in Model.Ratings)
+                {
+                    string avatarLocation = avatarHelper.GetAvatar(rating.Student.Username);
+
+                    <li class="list-group-item d-flex justify-content-between align-items-start">
+                        <div class="ms-2 me-auto">
+                            <div class="fw-bold">
+                                <img class="avatar-small" src="~/images/avatars/@avatarLocation" alt="avatar" />
+                                @rating.Student.FirstName @rating.Student.LastName
+                            </div>
+                            @{
+                                if (rating.Review != null)
+                                {
+                                    @rating.Review
+                                }
+                                else
+                                {
+                                    <i>No review</i>
+                                }
+                            }
+                        </div>
+                        <span class="badge bg-black bg-opacity-25 rounded-pill" style="margin-top: 14px;">
+                            @await Html.PartialAsync("_DisplayRating", rating.Value)
+                        </span>
+                    </li>
+                }
+            </ol>
+        }
+    }
+</div>
+
+<script>
+    @*STUDENTS MODAL SEARCH*@
+    document.getElementById('searchBar').addEventListener('input', function () {
+        var searchTerm = this.value.toLowerCase();
+        var listItems = document.querySelectorAll('#studentModal .list-group-item');
+
+        listItems.forEach(function (item) {
+            var studentName = item.textContent.toLowerCase();
+            if (studentName.includes(searchTerm)) {
+                item.style.display = 'block';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    });
+
+    @*CREATE RATING FORM*@
+    document.getElementById("postButton").addEventListener("click", function () {
+        document.getElementById("ratingForm").submit();
+    });
+</script>
