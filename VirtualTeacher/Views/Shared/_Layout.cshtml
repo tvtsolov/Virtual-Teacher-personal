@@ -29,7 +29,7 @@
     <script src="https://kit.fontawesome.com/c21727a50d.js" crossorigin="anonymous"></script>
 </head>
 
-<body>
+<body class="">
 
 @*CONTACT MODAL*@
 <div class="modal fade" id="contactModal" aria-hidden="true" aria-labelledby="contactModalLabel" tabindex="-1">
@@ -69,10 +69,10 @@
     </div>
 </div>
 
-@* Top Navigation *@
-<nav id="nav" class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-    <div class="container-fluid">
-        <div class="btn-group"></div>
+@* NAVBAR ELEMENT *@
+<nav id="nav" class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light box-shadow ">
+    <div class="container-fluid nav-el">
+        <div class="btn-group "></div>
         <div class="btn-group navbar-brand" role="group" aria-label="Basic example">
             <a asp-controller="Home" asp-action="Index" class="btn btn-primary">
                     <i class="fa-regular fa-comments"></i> <strong>Language Learning</strong>
@@ -89,14 +89,14 @@
         </button>
 
         <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-            <ul class="navbar-nav flex-grow-1">
-                <li class="nav-item">
-                    <a class="nav-link text-dark" href="/Courses">All Courses</a>
+                <ul class="navbar-nav flex-grow-1">
+                <li class="nav-item ">
+                    <a class="nav-link" href="/Courses">All Courses</a>
                 </li>
                 @if (User.IsInRole("Teacher") || User.IsInRole("Admin"))
                 {
                     <li class="nav-item">
-                        <a class="nav-link text-dark" href="/Assignments">Assignments</a>
+                        <a class="nav-link" href="/Assignments">Assignments</a>
                     </li>
                 }
                 @if (User.Identity is { IsAuthenticated: true } && User.IsInRole("Admin"))
@@ -170,7 +170,7 @@
 }
 
 @* Main Body *@
-<main id="main" role="main" class="pb-3 ps-0 pe-0 rounded-1">
+    <main id="main " role="main" class="pb-3 ps-0 pe-0 rounded-1 body-text">
     @RenderBody()
 </main>
 

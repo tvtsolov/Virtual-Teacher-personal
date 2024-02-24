@@ -9,13 +9,14 @@
 
 @model HomeIndexViewModel;
 
-<div class="hero">
+<div class="hero body-text">
     <section class="hero-left">
         @{
             if (isLogged)
             {
-                <div id="greeting-container">
-                    <h1 id="greeting" , @currentUser></h1>
+                <div id="greeting-container" class="body-text">
+                    <h1  id="greeting" , @currentUser></h1>
+                    <h1>Welcome to Language Learning</h1>
                 </div>
             }
             else
@@ -24,7 +25,7 @@
             }
         }
         <h4>Your Gateway to Fluent Learning!</h4>
-        <p style="text-align:justify">
+        <p class="body-text"  style="text-align:justify">
             Master languages at your pace, from beginners to advanced. 
             Redefine language education from home.
         </p>
@@ -50,7 +51,7 @@
     <h4><span class="badge bg-primary">Benefits</span></h4>
 </div>
 
-<div class="bullet-points" id="grad1">
+<div class="bullet-points">
     <p>
         <i class="fa-solid fa-trophy"></i>
         <br />
@@ -80,7 +81,7 @@
 
 @*MOST POPULAR*@
 <div id="popularBlock">
-    <div class="d-flex card-carousel rounded-1">
+    <div class="d-flex card-carousel-c rounded-1">
         @foreach (var course in Model.CoursesByPopularity)
         {
             <div class="card" style="width: 18rem;">
@@ -104,7 +105,7 @@
                             @{var rating = course.Ratings.Any() ? course.Ratings.Average(r => r.Value) : 0;}
 
                             <i class="fa-regular fa-user" style="margin-left:4px; margin-right: 1px;"></i> @course.EnrolledStudents.Count()
-                            <i class="fa-regular fa-star" style="margin-left:4px; margin-right: 1px;"></i> @rating
+                            <i class="fa-regular fa-star" style="margin-left:4px; margin-right: 1px;"></i> @rating.ToString("F1")
                         </div>
                     </div>
                 </div>
@@ -116,7 +117,7 @@
 
 @*TOP RATED*@
 <div id="ratingBlock" class="hidden">
-    <div class="d-flex card-carousel rounded-1">
+    <div class="d-flex card-carousel-c rounded-1">
         @{
             if (Model.CoursesByRating is not null)
             {
@@ -145,7 +146,7 @@
                                     }
 
                                     <i class="fa-regular fa-user" style="margin-left:4px; margin-right: 1px;"></i> @course.EnrolledStudents.Count()
-                                    <i class="fa-regular fa-star" style="margin-left:4px; margin-right: 1px;"></i> @rating
+                                    <i class="fa-regular fa-star" style="margin-left:4px; margin-right: 1px;"></i> @rating.ToString("F1")
                                 </div>
                             </div>
                         </div>
@@ -159,7 +160,7 @@
 
 @*NEWEST*@
 <div id="newestBlock" class="hidden">
-    <div class="d-flex card-carousel rounded-1">
+    <div class="d-flex card-carousel-c rounded-1">
         @{
             if (Model.CoursesByDate is not null)
             {
@@ -188,7 +189,7 @@
                                     }
 
                                     <i class="fa-regular fa-user" style="margin-left:4px; margin-right: 1px;"></i> @course.EnrolledStudents.Count()
-                                    <i class="fa-regular fa-star" style="margin-left:4px; margin-right: 1px;"></i> @rating
+                                    <i class="fa-regular fa-star" style="margin-left:4px; margin-right: 1px;"></i> @rating.ToString("F1")
                                 </div>
                             </div>
                         </div>
@@ -228,7 +229,7 @@
     <h4><span class="badge bg-primary">Our Crew</span></h4>
 </div>
 
-<div class="d-flex card-carousel rounded-1">
+<div class="d-flex card-carousel-c rounded-1">
 
     @{
         if (Model.Teachers is not null)
@@ -326,128 +327,3 @@
 
 </script>
 
-
-@* todo Move to site.css when done*@
-<style>
-#popularBlock{
-    display: block;
-}
-
-#newestBlock.hidden,
-#popularBlock.hidden,
-#ratingBlock.hidden {
-    display: none;
-}
-
-.card-carousel{
-    border: 1px solid gray;
-    padding-top: 8px;
-    padding-bottom: 8px;
-    padding-left: 8px;
-    padding-right: 8px;
-    justify-content: space-between;
-    margin-bottom: 3rem;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-}
-
-#grad1 {
-    height: 200px;
-    background-image: linear-gradient(to right, #4158D0, #C850C0,#FFCC70);
-}
-
-.bullet-points{
-    display: flex;
-    align-items: center;
-    margin-bottom: 3rem;
-    justify-content: space-between;
-}
-
-.bullet-points section{
-    flex: 1;
-}
-
-.bullet-points p {
-    font-weight: 600;
-    line-height: 1.5;
-    margin-bottom: 25px;
-    color: #ffffff;
-    margin-left: 5%;
-    margin-right: 5%;
-    text-align: justify;
-}
-
-.bullet-points i {
-    font-weight: 600;
-    line-height: 1.5;
-    color: #ffff;
-    justify-content: center;
-    margin-left: 40%;
-}
-
-.hero {
-    display: flex;
-    align-items: center;
-    margin-bottom: 5rem;
-}
-
-.hero section {
-    flex: 1;
-}
-.hero-left h1 {
-    font-size: 2.5rem;
-    margin-bottom: 25px;
-    color: #070439;
-}
-
-.hero-left p {
-    font-weight: 600;
-    line-height: 1.5;
-    margin-bottom: 25px;
-    color: #444444;
-}
-
-.hero-left {
-    padding-right: 40px;
-}
-/* .hero-left a {
-    padding: 10px 15px;
-    background: #372cfa;
-    color: #fff;
-    font-weight: 600;
-    border-radius: 4px;
-    cursor: pointer;
-    border: none;
-    outline: none;
-    transition: 0.3s all ease;
-    border-radius: 20px;
-} */
-
-.right {
-    padding-top: 50px;
-}
-
-.right img {
-    width: 100%;
-    max-width: 465px;
-}
-@@media screen and (max-width: 1000px) {
-    nav img {
-    width: 100px; 
-    }
-
-  nav li {
-    list-style: none;
-    margin: 0 8px 
-  }
-
-  .hero {
-    flex-direction: column;  
-    text-align: center; 
-  }
-
-  .hero .right {
-    order: -1;  
-    padding-bottom: 5rem; 
-  }
-}
-</style>
