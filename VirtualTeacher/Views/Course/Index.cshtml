@@ -74,7 +74,6 @@
         @{
             if (Model.Courses != null)
             {
-
                 foreach (var course in Model.Courses)
                 {
                     fullDescription = course.Description;
@@ -88,11 +87,11 @@
                         shortDescription = fullDescription;
                     }
 
-                    <div class="card mb-3 position-relative" >  @* if for teachers *@
+                    <div class="card mb-3 position-relative" > 
 
                        @{bool isDraft = !course.Published;}
 
-                        <div class="  card-body custom-card-height-1 @(isDraft? "border border-warning" : "")  ">
+                        <div class="card-body custom-card-height-1 @(isDraft? "border border-warning" : "")  ">
 
                             <a class="inline-block" asp-controller="Course" asp-action="Details" asp-route-id="@course.Id"><H5>@course.Title</H5></a>                             
                             <span class="text-danger text-end bottom-25px"> @(isDraft ? "(Draft)" : "")</span>

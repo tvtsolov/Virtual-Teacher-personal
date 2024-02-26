@@ -81,12 +81,12 @@
 
 @*MOST POPULAR*@
 <div id="popularBlock">
-    <div class="d-flex card-carousel-c rounded-1">
+    <div class="d-flex card-carousel-c rounded-1 ">
         @foreach (var course in Model.CoursesByPopularity)
         {
-            <div class="card" style="width: 18rem;">
+            <div class="card " style="width: 18rem;">
 
-                <div class="card-body">
+                <div class="card-body ">
                     <h5 class="card-title">
                         <img class="language-flag" src="~/images/flags/svgFlags/@(course.CourseTopic).svg" alt="" />
                         @course.Title
@@ -210,17 +210,17 @@
     <p>
         <i class="fa-solid fa-people-group"></i>
         <br />
-        Currently, our platform boasts @Model.UsersCount users, fostering a diverse and active community dedicated to knowledge acquisition.
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
     </p>
     <p>
         <i class="fa-solid fa-graduation-cap"></i>
         <br />
-        Choose from @Model.CoursesCount courses on our platform, providing a structured curriculum to meet your learning objectives.
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
     </p>
     <p>
         <i class="fa-regular fa-file"></i>
         <br />
-        Explore our language-focused library with @Model.LecturesCount lectures, each tailored to enhance your fluency in diverse languages.
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
     </p>
 </div>
 

@@ -1,8 +1,6 @@
 @import url(https://fonts.googleapis.com/css?family=Open+Sans);
 
-.body-text {
-    color: palegoldenrod !important;
-}
+
 
 #popularBlock {
 }
@@ -21,7 +19,7 @@
 }
 
 .nav-link {
-    color: palegoldenrod
+    /*color: palegoldenrod*/
 }
 
 .card-carousel {
@@ -35,10 +33,7 @@
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
 
-#grad1 {
-    height: 200px;
-    background-image: linear-gradient(to right, #4158D0, #C850C0,#FFCC70);
-}
+
 
 .bullet-points {
     display: flex;
@@ -55,7 +50,7 @@
         font-weight: 600;
         line-height: 1.5;
         margin-bottom: 25px;
-        color: #ffffff;
+        /*color: #ffffff;*/
         margin-left: 5%;
         margin-right: 5%;
         text-align: justify;
@@ -128,11 +123,7 @@ html, body {
 body {
     max-width: 1400px;
     margin: 0 auto;
-    background: rgb(43,13,59);
-    background: -moz-linear-gradient(90deg, rgba(43,13,59,1) 5%, rgba(150,74,137,1) 50%, rgba(43,13,59,1) 95%);
-    background: -webkit-linear-gradient(90deg, rgba(43,13,59,1) 5%, rgba(150,74,137,1) 50%, rgba(43,13,59,1) 95%);
-    background: linear-gradient(90deg, rgba(43,13,59,1) 5%, rgba(150,74,137,1) 50%, rgba(43,13,59,1) 95%);
-    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#2b0d3b",endColorstr="#2b0d3b",GradientType=1);
+    background: #FAF3F0;
 }
 
 nav {
@@ -159,6 +150,10 @@ footer {
 .nav-el {
     padding-left: 0;
     padding-right: 0;
+}
+
+.card-bg1 {
+    background-color: #7360DF;
 }
 
 .sidebar {
