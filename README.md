@@ -8,6 +8,11 @@ The theme of the project is Language lessons. :speech_balloon:
 ---
 <br>
 
+
+Short Preview:
+
+https://youtu.be/xmRGHg01H5w?si=-89dAvzDFa20FVng
+
 ### :hammer_and_wrench: Features
 
 - Anonymous users can see the list of all courses
