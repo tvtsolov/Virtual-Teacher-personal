@@ -55,6 +55,8 @@ https://youtu.be/xmRGHg01H5w?si=-89dAvzDFa20FVng
   + MailKit Version="4.3.0" 
   + NSwag.Annotations Version="14.0.3"
   + DeepL.NET Library Version="1.8.0"
+ 
+
 
 ### :rocket: Installation
 The project generates a database using code-first approach. 
@@ -63,6 +65,25 @@ Follow these steps to set up and run the application:
 
 :footprints::one: **Step one**
 - Install all necessary packages using the the NuGet Package manager in Visual Studio 2023
+
+- To install them all run in the NuGet Package Manager console:
+
+```
+dotnet add package Microsoft.EntityFrameworkCore --version 6.0.26
+dotnet add package Microsoft.AspNetCore.Authentication.JwtBearer --version 6.0.25
+dotnet add package Microsoft.AspNetCore.Identity.EntityFrameworkCore --version 6.0.26
+dotnet add package Microsoft.AspNetCore.Mvc.NewtonsoftJson --version 6.0.26
+dotnet add package Microsoft.EntityFrameworkCore.Design --version 6.0.26
+dotnet add package Microsoft.EntityFrameworkCore.SqlServer --version 6.0.26
+dotnet add package Microsoft.EntityFrameworkCore.Tools --version 6.0.26
+dotnet add package Swashbuckle.AspNetCore --version 6.5.0
+dotnet add package Swashbuckle.AspNetCore.Newtonsoft --version 6.5.0
+dotnet add package Swashbuckle.AspNetCore.Annotations --version 6.5.0
+dotnet add package System.IdentityModel.Tokens.Jwt --version 6.35.0
+dotnet add package MailKit --version 4.3.0
+dotnet add package NSwag.Annotations --version 14.0.3
+dotnet add package DeepL.net --version 1.8.0
+```
 
 :footprints::two: **Step two**
 - Setup the SQL server connection to your computer by creating an appsettings.json file in the root folder of the project
