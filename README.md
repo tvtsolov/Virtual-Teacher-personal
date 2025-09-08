@@ -59,6 +59,10 @@ https://youtu.be/xmRGHg01H5w?si=-89dAvzDFa20FVng
 
 
 ### :rocket: Installation
+There are two ways to install the package. Manual ✋ and using Docker 🐋
+
+## ✋ Manual installation
+
 The project generates a database using code-first approach. 
 
 Follow these steps to set up and run the application:
@@ -140,7 +144,23 @@ This is the url you can use to access the site after you have build the project.
 <br>
 <br>
 
-### Home Page
+## 🐋 Using Docker
+
+Install [Docker](https://docs.docker.com/get-started/get-docker/)
+You will need to make an account. 
+
+Enable [virtualisation](https://learn.microsoft.com/en-us/windows-server/virtualization/hyper-v/get-started/install-hyper-v?tabs=powershell&pivots=windows) on your machine if it isn't enabled.
+
+Get the image of the site from my repo [here](https://hub.docker.com/r/tvtsolov/vt-repo).
+You can download it directly form the site if you see the button (if you're using Chrome) or using the pull request line diretly in the docker terminal. 
+
+Don't start the project from Docker button, use this instead in the terminal:
+```docker run -p 8080:80 tvtsolov/vt-repo:latest```
+
+Now you should be able to see the site if you load in your browser ```http://localhost:8080```
+
+
+## Home Page
 <br>
 <img src="https://i.ibb.co/KyzCfQL/fp-an.png" width='600' />
 
